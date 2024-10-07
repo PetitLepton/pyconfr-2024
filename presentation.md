@@ -4,6 +4,7 @@ title: "Python & kedro<br>pour<br>l'agriculture de précision"
 author: "Paul Arnaud & Flavien Lambert<br>Sencrop"
 format:
   revealjs:
+    width: 1244
     toc: true
     toc-depth: 1
     toc-title: Agenda
@@ -143,7 +144,7 @@ kedro run --pipeline my_pipeline --env base
 :::
 
 :::{.fragment .fade-in}
-```{.yaml filename=/conf/test-local/catalog.yaml}
+```{.yaml filename=/conf/test-local/catalog.yaml }
 companies:
   type: pandas.CSVDataset
   filepath: data/01_raw/companies.csv
@@ -153,15 +154,17 @@ preprocessed_companies:
   filepath: data/02_intermediate/preprocessed_companies.csv
 ```
 
+---
+
 ```sh
 kedro run --pipeline my_pipeline --env test-local
 ```
 :::
 :::
 
-## Structure
+## structure
 
-```sh
+```bash
 .
 ├── conf
 │   ├── base
@@ -174,21 +177,66 @@ kedro run --pipeline my_pipeline --env test-local
 │   └── ...
 ├── notebooks
 └── src
-    └── weather_conditions
+    └── my_project
         ├── pipeline_registry.py
         └── pipelines
-            └── compute_statistics
+            └── my_pipeline
                 ├── nodes.py
                 └── pipeline.py
 ```
 
 # kedro: du développement à la production
 
+
+## Dumas du tuyau : trois écrivains et un lecteur
+
 ## sources: SQL & API
 
-## pipeline kedro viz
+## Des tests à la production : une histoire de sources
 
-## mise en production
+
+:::: {.columns}
+
+:::{.column}
+```{.yaml filename="/conf/test-measures/catalog.yml"}
+locations:
+  type: pandas.JSONDataset
+  filepath: data/01_raw/test_measures/locations.json
+
+formatted_measures_on_grids:
+  type: pandas.CSVDataset
+  filepath: data/03_primary/test_measures/measures_on_grids.csv
+  load_args:
+    parse_dates:
+      - timestamp
+```
+:::
+:::{.column}
+```{.yaml filename="/conf/production/catalog.yml"}
+locations:
+  type: pandas.JSONDataset
+  filepath: s3://virtual-stations/virtual-stations.json
+
+formatted_measures_on_grids:
+  type: datasets.ConfluentKafkaAvroDataset
+  save_args:
+    topic: h3_cells_time_series
+    cluster:
+      bootstrap_servers: ...
+    schema_registry:
+      url: ...
+    schema:
+      name: h3_cells_time_series
+      type: record
+      fields:
+        - name: h3_cell_id
+          type: string
+        - name: h3_cell_resolution
+          type: int
+        ...
+```
+:::
+:::
 
 # Conclusion
 
