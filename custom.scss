@@ -1,0 +1,99 @@
+/*-- scss:defaults --*/
+@import url("https://use.typekit.net/poo3ljh.css");
+
+$cobalt: #203a9a;
+$darkLeaf: #006833;
+$lightLeaf: #69C028;
+$darkGrey: #2A3540;
+$mediumGrey: #52667A;
+$lightGrey: #EBEEF0;
+
+$presentation-font-size-root: 24pt;
+$presentation-heading-font-weight: 700;
+$presentation-heading-color: $cobalt;
+
+$font-family-sans-serif: "Muli", "JetBrains Mono";
+$font-family-monospace: "JetBrains Mono";
+
+$border-width: 0px;
+
+
+/*-- scss:rules --*/
+
+// .reveal h1 {
+//   color: $sencropBlue;
+// }
+
+.container {
+  display: grid;
+  grid-template-columns: 7ex auto;
+  align-items: center;
+}
+
+#vcenter {
+  vertical-align: middle;
+}
+
+// .reveal ul ul {
+//   // list-style-type: ;
+//   list-style-image: url("/home/flavien/github.com/PetitLepton/pyconfr-2024/logo-small.png");
+// }
+
+// .reveal ul {
+//   // list-style-type: ;
+//   list-style-image: url("/home/flavien/github.com/PetitLepton/pyconfr-2024/logo-small.png");
+// }
+
+.reveal li {
+  padding-left: 1ch;
+}
+
+.reveal li::marker {
+  content: "🍂";
+  font-size: 0.8em;
+}
+
+.reveal .slide-logo {
+  max-height: 3.5rem;
+}
+
+table {
+  border-color: None;
+  border: none;
+}
+
+.reveal table {
+  margin: 0;
+}
+
+.reveal td, .reveal tr, .reveal th {
+  border: 0px;
+  border-bottom: none;
+  border-top: none;
+  border-bottom-width: 0px;
+  border-top-width: 0px;
+}
+
+.reveal pre.sourceCode code {
+  background: $lightGrey;
+  width: 40em;
+}
+
+.code-with-filename .code-with-filename-file {
+  background-color: $cobalt;
+  color: white;
+}
+
+.reveal code {
+  color: $darkLeaf;
+}
+
+code span .fu {
+  color: $cobalt;
+}
+
+code span .at,
+code span .ex,
+code span .bu {
+  color: black;
+}
