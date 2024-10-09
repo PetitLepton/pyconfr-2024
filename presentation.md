@@ -1,9 +1,10 @@
 ---
 title: "Python & kedro<br>pour<br>l'agriculture de précision"
 # subtitle: "Étude de cas Inclusive Brains"
-author: "Paul Arnaud & Flavien Lambert<br>Sencrop"
+author: "Paul Arnaud & Flavien Lambert<br>Data Engineering@Sencrop"
 format:
   revealjs:
+    title-block-banner: true
     width: 1244
     toc: true
     toc-depth: 1
@@ -18,59 +19,67 @@ format:
     highlight-style: github
     code-line-numbers: false
 ---
-# Sencrop
+# sencrop
 
-## Sencrop {background-opacity=0.25 background-image="raincrop.jpg"}
+## sencrop {background-opacity=0.25 background-image="raincrop.jpg"}
 
-35000 stations météorolgiques réparties sur toute l'Europe
+- 35000 stations météorolgiques réparties sur toute l'Europe
 
 ```{=html}
-<table>
-  <tr>
-    <td><img src="./grey-temp-hum-o.png" width="2em"/></td>
-    <td style="vertical-align: middle">température de l'air & hygrométrie</td>
-  </tr>
-  <tr>
-    <td><img src="./grey-wind.png" width="2em"/></td>
-    <td style="vertical-align: middle">direction et vitesse du vent</td>
-  </tr>
-    <tr>
-    <td><img src="./grey-rain-o.png" width="2em"/></td>
-    <td style="vertical-align: middle">pluviométrie</td>
-  </tr>
-  <tr>
-    <td><img src="./grey-dew-point.png" width="2em"/></td>
-    <td style="vertical-align: middle">point de rosée</td>
-  </tr>
-</table>
+<div class="container">
+  <img src="./grey-temp-hum-o.png" width="70em"/>
+  <p>température de l'air & hygrométrie</p>
+  <img src="./grey-wind.png" width="70em"/>
+  <p>direction et vitesse du vent</p>
+  <img src="./grey-rain-o.png" width="70em"/>
+  <p>pluviométrie</p>
+  <img src="./grey-dew-point.png" width="70em"/>
+  <p>point de rosée</p>
+</div>
 ```
 
-## Spatialisation 
+## spatialisation 
 
 Est-ce que l'on peut fournir de la donnée météorologique de qualité sur n'importe quel localisation sur le territoire ?
 
+:::{.columns}
+
+:::{.column #vcenter}
+
 - comparaison des mesures de stations avec les médianes sur les grilles `h3`
 
-![](./h3.png)
+:::
+:::{.column #vcenter}
 
-# kedro en quelques mots
+![](./pentagon_hexagon_children.png)
 
-## kedro en quelques mots
+:::
+:::
+
+# kedro en trois mots
+
+## kedro en trois mots
+
+:::{.fragment}
 
 - librairie de transformations de données
-  - découplage entre les sources de données et les transformations opérées
+  - découplage entre les sources de données et les transformations
+:::
+
+:::{.fragment}
+
 - trois concepts principaux
-  - node : fonction — au sens Python — avec un/des `dataset` d'entrée et un/des `dataset` de sortie
-  - pipeline : Direct Acyclic Graph composé de `node`
-  - catalog : un ensemble de `dataset`
-- structure rigide
-  - facile d'entrer sur un projet
+  - `node` : fonction — au sens Python — avec un/des `dataset` d'entrée et un/des `dataset` de sortie
+  - `pipeline` : Direct Acyclic Graph composé de `node`
+  - `catalog` : un ensemble de `dataset`
+
+:::
 
 ## nodes & pipelines
 
 :::: {.columns}
-
 :::{.column}
+
 ```{.python filename="src/pipelines/weather_conditions/pipeline.py"}
 from kedro.pipeline import Pipeline, node, pipeline
 
@@ -96,9 +105,10 @@ def create_pipeline(**kwargs) -> Pipeline:
         ]
     )
 ```
-:::
 
+:::
 :::{.column}
+
 ```{.python filename="src/pipelines/weather_conditions/nodes.py"}
 import pandas as pd
 
@@ -117,22 +127,25 @@ def preprocess_companies(companies: pd.DataFrame) -> pd.DataFrame:
     companies["company_rating"] = _parse_percentage(companies["company_rating"])
     return companies
 ```
-:::
-::::
-## catalog et environment
 
-- catalog : définition des `dataset` d'entrée et de sortie
+:::
+:::
+
+## catalog & environment
+
+- catalog : définition des `dataset` d'entrée et de sortie 🌱🍂
 - environnement : ensemble du catalog et d'un jeu de paramètres
 
 :::{.r-stack}
 :::{.fragment .fade-in-then-out}
+
 ```{.yaml filename=/conf/base/catalog.yaml width="200px"}
 companies:
   type: pandas.CSVDataset
   filepath: data/01_raw/companies.csv
 
 preprocessed_companies:
-  type: pandas.ParquetDataset
+  type: pandas.Parquedivataset
   filepath: data/02_intermediate/preprocessed_companies.pq
 ```
 
@@ -141,9 +154,11 @@ preprocessed_companies:
 ```sh
 kedro run --pipeline my_pipeline --env base
 ```
+
 :::
 
 :::{.fragment .fade-in}
+
 ```{.yaml filename=/conf/test-local/catalog.yaml }
 companies:
   type: pandas.CSVDataset
@@ -159,10 +174,13 @@ preprocessed_companies:
 ```sh
 kedro run --pipeline my_pipeline --env test-local
 ```
+
 :::
 :::
 
 ## structure
+
+:::
 
 ```bash
 .
@@ -185,19 +203,18 @@ kedro run --pipeline my_pipeline --env test-local
                 └── pipeline.py
 ```
 
-# kedro: du développement à la production
+:::
 
+# kedro: du développement à la production
 
 ## Dumas du tuyau : trois écrivains et un lecteur
 
-## sources: SQL & API
+## des tests à la production : une histoire de sources
 
-## Des tests à la production : une histoire de sources
-
-
-:::: {.columns}
+:::{.columns}
 
 :::{.column}
+
 ```{.yaml filename="/conf/test-measures/catalog.yml"}
 locations:
   type: pandas.JSONDataset
@@ -210,8 +227,10 @@ formatted_measures_on_grids:
     parse_dates:
       - timestamp
 ```
+
 :::
 :::{.column}
+
 ```{.yaml filename="/conf/production/catalog.yml"}
 locations:
   type: pandas.JSONDataset
@@ -235,16 +254,17 @@ formatted_measures_on_grids:
           type: int
         ...
 ```
+
 :::
 :::
 
-# Conclusion
+# vers l'agnoticisme ?
 
-retour d'expérience : PoC to production in a few weeks
-structure rigide = expérience de développement excellente
-limites: databricks, spark/pandas -> Ibis/ORM/Narwhal
-communauté: Slack
+## la perspective du manager
 
-custom datasets
-
-discuter production : airflow scheduler, Docker
+- structure rigide : expérience de développement excellente
+  - PoC to production in a few weeks
+- réactivité de la communauté : Slack avec 2200 inscrit·es
+- vers un pipeline agnostique
+  - code des `node` dépend encore des libraries : `pandas`/`polars`/`spark`
+  - nouvelles librairies pour palier cette dépendance : [`ibis`](https://ibis-project.org/), [`narwhal`](https://github.com/narwhals-dev/narwhals)
