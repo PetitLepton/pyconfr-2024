@@ -1,17 +1,15 @@
 ---
 title: "Python & kedro<br>pour<br>l'agriculture de précision"
 # subtitle: "Étude de cas Inclusive Brains"
-author: "Paul Arnaud & Flavien Lambert<br>Data Engineering@Sencrop"
+author: "Paul Arnaud & Flavien Lambert<br>Data Engineering Team<br><img src='./sencrop_logo_vertical_RVB.png' height=100px>"
 format:
   revealjs:
     title-block-banner: true
     width: 1244
     toc: true
     toc-depth: 1
-    toc-title: Agenda
-    toc-location: right
+    toc-title: agenda
     theme: [custom.scss]
-    logo: sencrop_logo_horizontal_RVB.png
     menu: false
     progress: false
     scrollable: true
@@ -19,7 +17,7 @@ format:
     highlight-style: github
     code-line-numbers: false
 ---
-# sencrop
+# l'agtech au pays de la patate
 
 ## sencrop {background-opacity=0.25 background-image="raincrop.jpg"}
 
@@ -56,7 +54,7 @@ Est-ce que l'on peut fournir de la donnée météorologique de qualité sur n'im
 :::
 :::
 
-# kedro en trois mots
+# un, deux, trois...<span style="color:yellow">◆</span>kedro!
 
 ## kedro en trois mots
 
@@ -177,7 +175,7 @@ kedro run --pipeline my_pipeline --env test-local
 
 :::
 :::
-
+****
 ## structure
 
 :::
@@ -258,7 +256,7 @@ formatted_measures_on_grids:
 :::
 :::
 
-# vers l'agnoticisme ?
+# vers des pipelines tous terrains ?
 
 ## la perspective du manager
 
