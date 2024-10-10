@@ -247,6 +247,28 @@ formatted_measures_on_grids:
 
 # vers des pipelines tout-terrain ?
 
+## From Salamèche to Dracaufeu
+
+```{mermaid}
+architecture-beta
+  group aws(cloud)[AWS]
+  group confluent(cloud)[Confluent]
+  group docker(cloud)[Docker] in aws
+  
+  
+  service db(database)[Database] in aws
+  service kedro(server)[Kedro] in docker
+  service MWAA(server)[MWAA] in aws
+  service topic(server)[Kafka topic] in confluent
+  
+  MWAA:R -- L:kedro
+  kedro:R -- L:topic
+  topic:T -- R:db
+```
+
+
+# vers l'agnoticisme ?
+
 ## la perspective du manager
 
 :::{.fragment}
