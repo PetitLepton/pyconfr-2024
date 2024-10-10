@@ -1,5 +1,6 @@
 /*-- scss:defaults --*/
 @import url("https://use.typekit.net/poo3ljh.css");
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap');
 
 $cobalt: #203a9a;
 $darkLeaf: #006833;
@@ -20,9 +21,13 @@ $border-width: 0px;
 
 /*-- scss:rules --*/
 
-// .reveal h1 {
-//   color: $sencropBlue;
-// }
+.reveal a {
+  color: $cobalt;
+}
+
+.reveal .controls, .reveal .slide-menu-button {
+  color: $cobalt;
+}
 
 .container {
   display: grid;

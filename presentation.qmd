@@ -1,7 +1,7 @@
 ---
 title: "Python & kedro<br>pour<br>l'agriculture de précision"
 # subtitle: "Étude de cas Inclusive Brains"
-author: "Paul Arnaud & Flavien Lambert<br>Data Engineering Team<br><img src='./sencrop_logo_vertical_RVB.png' height=100px>"
+author: "Paul Arnaud & Flavien Lambert<br>Data Engineering Team<br><img src='./images/sencrop_logo_vertical_RVB.png' height=100px>"
 format:
   revealjs:
     title-block-banner: true
@@ -19,26 +19,26 @@ format:
 ---
 # l'agtech au pays de la patate
 
-## sencrop {background-opacity=0.25 background-image="raincrop.jpg"}
+## sencrop {background-opacity=0.25 background-image="./images/raincrop.jpg"}
 
-- 35000 stations météorolgiques réparties sur toute l'Europe
+- 35000 stations météorologiques réparties sur toute l'Europe
 
 ```{=html}
 <div class="container">
-  <img src="./grey-temp-hum-o.png" width="70em"/>
+  <img src="./images/grey-temp-hum-o.png" width="70em"/>
   <p>température de l'air & hygrométrie</p>
-  <img src="./grey-wind.png" width="70em"/>
+  <img src="./images/grey-wind.png" width="70em"/>
   <p>direction et vitesse du vent</p>
-  <img src="./grey-rain-o.png" width="70em"/>
+  <img src="./images/grey-rain-o.png" width="70em"/>
   <p>pluviométrie</p>
-  <img src="./grey-dew-point.png" width="70em"/>
+  <img src="./images/grey-dew-point.png" width="70em"/>
   <p>point de rosée</p>
 </div>
 ```
 
 ## spatialisation 
 
-Est-ce que l'on peut fournir de la donnée météorologique de qualité sur n'importe quel localisation sur le territoire ?
+- Est-ce que l'on peut fournir de la donnée météorologique de qualité sur n'importe quelle localisation sur le territoire ?
 
 :::{.columns}
 
@@ -49,12 +49,12 @@ Est-ce que l'on peut fournir de la donnée météorologique de qualité sur n'im
 :::
 :::{.column #vcenter}
 
-![](./pentagon_hexagon_children.png)
+![](./images/pentagon_hexagon_children.png)
 
 :::
 :::
 
-# un, deux, trois...<span style="color:yellow">◆</span>kedro!
+# un, deux, trois... <span style="color:yellow">◆</span> kedro!
 
 ## kedro en trois mots
 
@@ -73,32 +73,30 @@ Est-ce que l'on peut fournir de la donnée météorologique de qualité sur n'im
 
 :::
 
-## nodes & pipelines
+## pipelines & nodes
 
 :::: {.columns}
 :::{.column}
 
-```{.python filename="src/pipelines/weather_conditions/pipeline.py"}
+```{.python filename="/src/pipelines/my_pipeline/pipeline.py"}
 from kedro.pipeline import Pipeline, node, pipeline
 
-from .nodes import create_model_input_table, preprocess_companies, preprocess_shuttles
+from .nodes import create_model, preprocess
 
 
 def create_pipeline(**kwargs) -> Pipeline:
     return pipeline(
         [
             node(
-                func=preprocess_companies,
+                func=preprocess,
                 inputs="companies",
                 outputs="preprocessed_companies",
-                name="preprocess_companies_node",
             ),
             ...
             node(
-                func=create_model_input_table,
-                inputs=["preprocessed_shuttles", "preprocessed_companies", "reviews"],
-                outputs="model_input_table",
-                name="create_model_input_table_node",
+                func=create_model,
+                inputs=["preprocessed_companies", ...],
+                outputs=...,
             ),
         ]
     )
@@ -107,23 +105,14 @@ def create_pipeline(**kwargs) -> Pipeline:
 :::
 :::{.column}
 
-```{.python filename="src/pipelines/weather_conditions/nodes.py"}
+```{.python filename="/src/pipelines/my_pipeline/nodes.py"}
 import pandas as pd
 
 ...
 
-def preprocess_companies(companies: pd.DataFrame) -> pd.DataFrame:
-    """Preprocesses the data for companies.
-
-    Args:
-        companies: Raw data.
-    Returns:
-        Preprocessed data, with `company_rating` converted to a float and
-        `iata_approved` converted to boolean.
-    """
-    companies["iata_approved"] = _is_true(companies["iata_approved"])
-    companies["company_rating"] = _parse_percentage(companies["company_rating"])
-    return companies
+def preprocess(data: pd.DataFrame) -> pd.DataFrame:
+    ...
+    return result
 ```
 
 :::
@@ -131,8 +120,8 @@ def preprocess_companies(companies: pd.DataFrame) -> pd.DataFrame:
 
 ## catalog & environment
 
-- catalog : définition des `dataset` d'entrée et de sortie 🌱🍂
-- environnement : ensemble du catalog et d'un jeu de paramètres
+- `catalog` : définition des `dataset` d'entrée et de sortie
+- `environment` : ensemble du `catalog` et d'un jeu de paramètres
 
 :::{.r-stack}
 :::{.fragment .fade-in-then-out}
@@ -140,14 +129,14 @@ def preprocess_companies(companies: pd.DataFrame) -> pd.DataFrame:
 ```{.yaml filename=/conf/base/catalog.yaml width="200px"}
 companies:
   type: pandas.CSVDataset
-  filepath: data/01_raw/companies.csv
+  filepath: s3://01_raw/companies.csv
 
 preprocessed_companies:
-  type: pandas.Parquedivataset
-  filepath: data/02_intermediate/preprocessed_companies.pq
+  type: pandas.ParquetDataset
+  filepath: s3://02_intermediate/preprocessed_companies.pq
 ```
 
----
+<br>
 
 ```sh
 kedro run --pipeline my_pipeline --env base
@@ -167,7 +156,7 @@ preprocessed_companies:
   filepath: data/02_intermediate/preprocessed_companies.csv
 ```
 
----
+<br>
 
 ```sh
 kedro run --pipeline my_pipeline --env test-local
@@ -175,12 +164,12 @@ kedro run --pipeline my_pipeline --env test-local
 
 :::
 :::
-****
-## structure
 
-:::
+## structure du projet
 
-```bash
+- séparation des sources de données et des pipelines
+
+```{.bash code-line-numbers="4,15,17"}
 .
 ├── conf
 │   ├── base
@@ -192,6 +181,7 @@ kedro run --pipeline my_pipeline --env test-local
 │   ├── 01_raw
 │   └── ...
 ├── notebooks
+├── pyproject.toml
 └── src
     └── my_project
         ├── pipeline_registry.py
@@ -201,7 +191,6 @@ kedro run --pipeline my_pipeline --env test-local
                 └── pipeline.py
 ```
 
-:::
 
 # kedro: du développement à la production
 
@@ -256,13 +245,24 @@ formatted_measures_on_grids:
 :::
 :::
 
-# vers des pipelines tous terrains ?
+# vers des pipelines tout-terrain ?
 
 ## la perspective du manager
 
+:::{.fragment}
+
 - structure rigide : expérience de développement excellente
-  - PoC to production in a few weeks
+  - PoC à la production en un temps relativement court
+
+:::
+:::{.fragment}
+
 - réactivité de la communauté : Slack avec 2200 inscrit·es
+
+:::
+:::{.fragment}
+
 - vers un pipeline agnostique
   - code des `node` dépend encore des libraries : `pandas`/`polars`/`spark`
   - nouvelles librairies pour palier cette dépendance : [`ibis`](https://ibis-project.org/), [`narwhal`](https://github.com/narwhals-dev/narwhals)
+:::
