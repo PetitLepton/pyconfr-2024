@@ -19,11 +19,15 @@ format:
     mermaid:
       theme: forest
 ---
+
 # l'agtech au pays de la patate
 
 ## sencrop {background-opacity=0.25 background-image="./images/raincrop.jpg"}
 
 - 35000 stations météorologiques réparties sur toute l'Europe
+
+:::{.columns}
+:::{.column #vcenter}
 
 ```{=html}
 <div class="container">
@@ -38,10 +42,21 @@ format:
 </div>
 ```
 
+:::
+:::{.column #vcenter}
+:::{.fragment .fade-in}
+
+![](./images/stations-h3-7.png)
+
+:::
+:::
+:::
+
 ## spatialisation 
 
 - Est-ce que l'on peut fournir de la donnée météorologique de qualité sur n'importe quelle localisation sur le territoire ?
 
+:::{.fragment .fade-in}
 :::{.columns}
 
 :::{.column #vcenter}
@@ -53,6 +68,7 @@ format:
 
 ![](./images/pentagon_hexagon_children.png)
 
+:::
 :::
 :::
 
@@ -253,7 +269,7 @@ formatted_measures_on_grids:
 
 # vers des pipelines tout-terrain ?
 
-## la perspective du manager
+## la perspective du manager et de l'ingénieur
 
 :::{.fragment}
 
