@@ -198,7 +198,7 @@ kedro run --pipeline my_pipeline --env test-local
 
 ## Dumas du tuyau : trois écrivains et un lecteur
 
-## des tests à la production : une histoire de sources
+## à un YAML de la production...
 
 :::{.columns}
 
@@ -247,44 +247,11 @@ formatted_measures_on_grids:
 :::
 :::
 
+## ...enfin presque
+
+![](./images/virtual-stations.png){fig-align="center"}
+
 # vers des pipelines tout-terrain ?
-
-## From Salamèche to Dracaufeu
-
-```{mermaid}
-flowchart LR
-  subgraph AWS ["AWS Cloud"]
-      A["fa:fa-clock MWAA - Airflow"] -->|Schedules hourly| B["fa:fa-tasks ECS Task"]
-      subgraph B[ECS Task]
-          subgraph C ["fa:fa-docker Docker Image"]
-              D["fa:fa-cogs Kedro Framework"]
-          end
-      end
-      subgraph F ["fa:fa-database Aurora PostgreSQL"]
-          G["fa:fa-table Timeseries Table"]
-      end
-  end
-
-  subgraph Confluent ["Confluent Cloud"]
-      E["fa:fa-stream Kafka Topic"]
-  end
-
-  D -->|Produces data| E
-  E -->|Buffers data| F
-
-  style A fill:#6a4c93,color:#fff,stroke:#333,stroke-width:2px,rounded
-  style B fill:#1982c4,color:#fff,stroke:#333,stroke-width:2px,rounded
-  style C fill:#8ac926,color:#333,stroke:#333,stroke-width:2px,rounded
-  style D fill:#ffca3a,color:#333,stroke:#333,stroke-width:2px,rounded
-  style E fill:#ff595e,color:#fff,stroke:#333,stroke-width:2px,rounded
-  style F fill:#1982c4,color:#fff,stroke:#333,stroke-width:2px,rounded
-  style G fill:#6a4c93,color:#fff,stroke:#333,stroke-width:2px,rounded
-  style AWS fill:#f8f9fa,stroke:#1982c4,stroke-width:2px,rounded
-  style Confluent fill:#fff0f3,stroke:#ff595e,stroke-width:2px,rounded
-```
-
-
-# vers l'agnoticisme ?
 
 ## la perspective du manager
 
