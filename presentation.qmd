@@ -22,7 +22,7 @@ format:
 
 # l'agtech au pays de la patate
 
-## sencrop {background-opacity=0.25 background-image="./images/raincrop.jpg"}
+## sencrop, des stations météo connectées {background-opacity=0.25 background-image="./images/raincrop.jpg"}
 
 - 35000 stations météorologiques réparties sur toute l'Europe
 
@@ -51,6 +51,9 @@ format:
 :::
 :::
 :::
+
+## sencrop, les pros de l'agro
+![](./images/agro_features.png)
 
 ## spatialisation 
 
