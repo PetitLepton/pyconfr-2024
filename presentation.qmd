@@ -52,8 +52,8 @@ format:
 :::
 :::
 
-## sencrop, les pros de l'agro
-![](./images/agro_features.png)
+## sencrop, les pros de l'agro {background-image="./images/agro.gif"}
+
 
 ## spatialisation 
 
