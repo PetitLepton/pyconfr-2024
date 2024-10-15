@@ -5,6 +5,8 @@ author: "Paul Arnaud & Flavien Lambert<br>Data Engineering Team<br><img src='./i
 format:
   revealjs:
     title-block-banner: true
+    title-slide-attributes: 
+      data-notes: Bonjour à toutes et à tous, c'est notre première participation à Pycon France en tant qu'orateurs et nous tenons à remercier les organistrices et organisateurs de nous donner cette opportunité. Paul et moi faisons partie de la petite équipe de data engineering de Sencrop dont nous allons vous parler dans une minute. Après la présentation du problème que nous voulions résoudre, nous introduirons l'outil python que nous avons utilisé pour cela et nous montrerons comment cela nous a permis de passer relativement facilement en production.
     width: 1244
     toc: true
     toc-depth: 1
@@ -91,6 +93,15 @@ format:
 
 :::
 
+:::{.notes}
+kedro est une librairie open-source qui a été initialement développée par Quantum Black, la branche AI de Mc Kinsey (probablement
+financé par le contribuable français) qui a été depuis transmise à la Linux Foundation. Je devais être destiné à utiliser kedro parce
+que, comme les trous noirs quantiques, je n'ai pas de cheveux.
+
+kedro permet de construire efficacement des pipelines de transformations de données et se base sur trois concepts qui vous sont
+peut-être familiers : des nœuds, des pipelines et un catalogue dont nous allons expliquer la signification dans quelques instants.
+:::
+
 ## pipelines & nodes
 
 :::: {.columns}
@@ -134,6 +145,17 @@ def preprocess(data: pd.DataFrame) -> pd.DataFrame:
 ```
 
 :::
+:::
+
+:::{.notes}
+Un nœud au sens de kedro est juste une fonction python qui peut avoir des entrées et des sorties. Elle est totalement
+indépendante du reste et peut/doit donc être testée de manière unitaire.
+
+Un pipeline est constitué de séquences de nœuds. La structure du DAG, ce qui en fait un pipeline, ce sont les entrées/sorties.
+Si la sortie d'un nœud fait partie des entrées d'un autre alors ces deux nœuds seront exécutés séquentiellement.
+
+Vous remarquerez que les entrées/sorties sont définies par des chaînes de caractères, des noms de datasets. Que représentent-ils
+et comment passe-t-on d'une chaîne de caractère à un DataFrame pandas comme dans l'exemple. Et bien, c'est le catalogue !
 :::
 
 ## catalog & environment
@@ -180,6 +202,26 @@ preprocessed_companies:
 kedro run --pipeline my_pipeline --env test-local
 ```
 
+:::{.notes}
+Le catalogue est une liste de tous les datasets qui sont matérialisés — c'est à dire pas seulement en mémoire. Ils se présentent
+sous la forme d'un fichier yaml dont chaque clef principale correspond aux noms que vous trouvez dans les pipelines. L'élément le
+plus important est le type, c'est lui va déterminer comment on passe d'un nom à une structure python. Un type de dataset est en fait
+une classe Python qui implémente un certain nombre de méthode particulièrement, load et save. Lorsqu'un pipeline est exécuté,
+avant l'exécution d'un nœud, kedro va utiliser la méthode load pour charger les données du dataset en mémoire et appliquer la
+transformation définie dans le nœud. Le résultat est ensuite matérialisé si besoin par l'intermédiaire de la méthode save du dataset
+de sortie.
+
+Dans notre exemple, la dataset est un pandas.CSVDataset. C'est une classe qui utilise pandas pour lire un fichier CSV, qui ici, se trouve
+dans un bucket s3. Vous remarquerez que le catalogue es défini dans un dossier conf/base. Pour exécuter le pipeline, vous utilisez la CLI
+de kedro en précisant l'environnement, ici base. Et c'est ici que réside l'un des forces les plus tangibles de kedro. Vous avez parfaitement
+remarqué que le pipeline est indépendant des sources de données, la seule chose importante est que le dataset renvoie dans notre cas un dataframe.
+Je peux donc définir un autre catalogue avec un autre type de dataset qui va lui aussi me fournir une dataframe. Par exemple, je peux créer un
+catalogue de fichiers CSV locaux et tester mon pipeline avec ces nouvelles sources !
+
+Notez que tous ces datasets existent déjà, c'est une librairie appelée kedro-datasets qui est maintenue par les équipes de quantum black et la
+communauté.
+:::
+
 :::
 :::
 
@@ -209,6 +251,13 @@ kedro run --pipeline my_pipeline --env test-local
                 └── pipeline.py
 ```
 
+:::{.notes}
+Vous l'avez compris, kedro impose une séparation claire des datasets et des pipelines, des sources/sink et des transformations.
+Cela se retrouve dans la structure d'un projet. Tous les catalogues se trouvent dans le dossier conf. Dans l'exemple
+précédent, j'aurais créé le dossier test-local
+
+Les pipelines sont dans le dossier pipelines et sont répertoriés dans le fichier registry.
+:::
 
 # kedro: du développement à la production
 
