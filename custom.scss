@@ -18,15 +18,27 @@ $font-family-monospace: "JetBrains Mono";
 
 $border-width: 0px;
 
+$mermaid-font-family: $font-family-sans-serif;
+$mermaid-label-bg-color: $cobalt;
+$mermaid-label-fg-color: #fff;
+$mermaid-edge-color:$cobalt;
+$mermaid-bg-color: $cobalt;
+$mermaid-node-bg-color: $cobalt;
+$mermaid-node-fg-color: #fff;
+$mermaid-fg-color--lightest: $lightGrey;
+$mermaid-fg-color--lighter: $lightGrey;
 
 /*-- scss:rules --*/
 
 .nodeLabel {
-  font-family: $font-family-monospace;
-  padding: 20px;
+  font-size: small;
 }
 
 .reveal a {
+  color: $cobalt;
+}
+
+.reveal .slide-number a {
   color: $cobalt;
 }
 
@@ -86,12 +98,14 @@ table {
 
 .reveal pre.sourceCode code {
   background: $lightGrey;
-  width: 40em;
+  // width: 40em;
+  font-size: 0.8rem;
 }
 
 .code-with-filename .code-with-filename-file {
   background-color: $cobalt;
   color: white;
+  font-size: 16pt;
 }
 
 .reveal code {

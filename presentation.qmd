@@ -10,21 +10,22 @@ format:
     width: 1244
     toc: true
     toc-depth: 1
-    toc-title: agenda
+    toc-title: Agenda
     theme: [custom.scss]
     menu: false
     progress: false
     scrollable: true
-    navigation-mode: grid
     highlight-style: github
     code-line-numbers: false
-    mermaid:
-      theme: forest
+    slide-number: true
+    show-slide-number: all
+    gfm:
+      mermaid-format: js
 ---
 
-# l'agtech au pays de la patate
+# L'agtech au pays de la patate
 
-## sencrop {background-opacity=0.25 background-image="./images/raincrop.jpg"}
+## Sencrop {background-opacity=0.25 background-image="./images/raincrop.jpg"}
 
 - 35000 stations météorologiques réparties sur toute l'Europe
 
@@ -54,7 +55,7 @@ format:
 :::
 :::
 
-## spatialisation 
+## Spatialisation 
 
 - Est-ce que l'on peut fournir de la donnée météorologique de qualité sur n'importe quelle localisation sur le territoire ?
 
@@ -63,7 +64,8 @@ format:
 
 :::{.column #vcenter}
 
-- comparaison des mesures de stations avec les médianes sur les grilles `h3`
+- utilisation de maillage `h3` : index spatial hiérarchique
+- comparaison des mesures de stations avec les médianes sur les mailles
 
 :::
 :::{.column #vcenter}
@@ -74,7 +76,7 @@ format:
 :::
 :::
 
-# un, deux, trois... <span style="color:yellow">◆</span> kedro!
+# Un, deux, trois... <span style="color:yellow">◆</span> kedro!
 
 ## kedro en trois mots
 
@@ -85,12 +87,44 @@ format:
 :::
 
 :::{.fragment}
+:::{.columns}
+:::{.column #vcenter}
 
-- trois concepts principaux
-  - `node` : fonction — au sens Python — avec un/des `dataset` d'entrée et un/des `dataset` de sortie
-  - `pipeline` : Direct Acyclic Graph composé de `node`
-  - `catalog` : un ensemble de `dataset`
+```{mermaid}
+flowchart LR
+	node2[node]
+	node7[node]
+	
+	input1[(dataset)]
+	input2[(dataset)]
+	output[(dataset)]
+	
+  subgraph pipeline[pipeline]
+    direction LR
+  	node2 --> node7
+  	%% node3 --> node5 --> node7
+  	input1 --> node2
+  	input2 --> node2
+  	%% input3 --> node5
+  	node7 --> output
+  end
 
+  style pipeline color:#000
+```
+
+:::
+:::{.column #vcenter}
+<!-- :::{.fragment} -->
+
+- `node`
+  - fonction — au sens Python — avec un/des `dataset` d'entrée/sortie
+- `pipeline`
+  - séquence de `node`
+- `catalog`
+  - un ensemble de `dataset`
+
+:::
+:::
 :::
 
 :::{.notes}
@@ -105,45 +139,92 @@ peut-être familiers : des nœuds, des pipelines et un catalogue dont nous allon
 ## pipelines & nodes
 
 :::: {.columns}
-:::{.column}
+:::{.column #vcenter}
 
-```{.python filename="/src/pipelines/my_pipeline/pipeline.py"}
-from kedro.pipeline import Pipeline, node, pipeline
+```{mermaid}
+flowchart TB
+	node2[map_locations_to_grids]
+	node7[extract_unique_grid_ids]
+	
+	input1[(locations)]
+	input2[h3-grid-resolution]
+	output[(unique-grid-ids)]
+	
+  subgraph pipeline[map_locations_to_grids]
+    direction TB
+  	node2 --> node7
+  	%% node3 --> node5 --> node7
+  	input1 --> node2
+  	input2 --> node2
+  	%% input3 --> node5
+  	node7 --> output
+  end
 
-from .nodes import create_model, preprocess
+  style pipeline color:#000
+```
+
+:::
+:::{.column #vcenter}
+:::{.r-stack}
+:::{.fragment .fade-out}
+
+```{.python filename="/src/pipelines/map_locations_to_grids/pipeline.py"}
+from typing import Any
+from kedro.pipeline import Pipeline, node
+from .nodes import map_locations_to_grids, extract_unique_grid_ids
 
 
-def create_pipeline(**kwargs) -> Pipeline:
-    return pipeline(
-        [
+def create_pipeline(**kwargs: Any) -> Pipeline:
+    return Pipeline(
+        nodes=[
             node(
-                func=preprocess,
-                inputs="companies",
-                outputs="preprocessed_companies",
+                map_locations_to_grids,
+                inputs={
+                    "locations": "locations",
+                    "resolution": "params:h3-grid-resolution",
+                },
+                outputs="grids",
             ),
-            ...
             node(
-                func=create_model,
-                inputs=["preprocessed_companies", ...],
-                outputs=...,
-            ),
-        ]
+                extract_unique_grid_ids,
+                inputs={"grids": "grids"},
+                outputs="unique-grid-ids",
+            )
+        ],
     )
 ```
 
 :::
-:::{.column}
+:::{.fragment .fade-in #vcenter}
 
-```{.python filename="/src/pipelines/my_pipeline/nodes.py"}
-import pandas as pd
+```{.python filename="/src/pipelines/map_locations_to_grids/nodes.py"}
+import h3
+import pandas
 
-...
 
-def preprocess(data: pd.DataFrame) -> pd.DataFrame:
-    ...
-    return result
+def map_locations_to_grids(
+    locations: pandas.DataFrame, resolution: int
+) -> pandas.DataFrame:
+    return pandas.DataFrame(
+        data=[
+            {
+                "location_id": location["id"],
+                "grid_id": h3.geo_to_h3(
+                    lat=location["latitude"],
+                    lng=location["longitude"],
+                    resolution=resolution,
+                ),
+            }
+            for location in locations.to_dict(orient="records")
+        ]
+    )
+
+def extract_unique_grid_ids(grids: pandas.DataFrame) -> pandas.DataFrame:
+    return grids["grid_id"].unique()
 ```
 
+:::
+:::
 :::
 :::
 
@@ -163,44 +244,50 @@ et comment passe-t-on d'une chaîne de caractère à un DataFrame pandas comme d
 - `catalog` : définition des `dataset` d'entrée et de sortie
 - `environment` : ensemble du `catalog` et d'un jeu de paramètres
 
-:::{.r-stack}
-:::{.fragment .fade-in-then-out}
+:::{.columns}
+:::{.column}
 
-```{.yaml filename=/conf/base/catalog.yaml width="200px"}
-companies:
-  type: pandas.CSVDataset
-  filepath: s3://01_raw/companies.csv
+```{.yaml filename=/conf/test-local/catalog.yaml }
+locations:
+  type: pandas.JSONDataset
+  filepath: data/01_raw/test_local/two_locations.json
 
-preprocessed_companies:
-  type: pandas.ParquetDataset
-  filepath: s3://02_intermediate/preprocessed_companies.pq
+grids:
+  type: pandas.JSONDataset
+  filepath: data/02_intermediate/grids.json
 ```
 
 <br>
 
 ```sh
-kedro run --pipeline my_pipeline --env base
+kedro run --pipeline map_locations_to_grids --env test-local
 ```
 
 :::
-
+:::{.column}
 :::{.fragment .fade-in}
 
-```{.yaml filename=/conf/test-local/catalog.yaml }
-companies:
-  type: pandas.CSVDataset
-  filepath: data/01_raw/companies.csv
+```{.yaml filename=/conf/production/catalog.yaml width="200px"}
+locations:
+  type: pandas.JSONDataset
+  filepath: s3://virtual-stations/locations.json
 
-preprocessed_companies:
-  type: pandas.CSVDataset
-  filepath: data/02_intermediate/preprocessed_companies.csv
+
+
+
+
+
 ```
 
 <br>
 
 ```sh
-kedro run --pipeline my_pipeline --env test-local
+kedro run --pipeline map_locations_to_grids --env production
 ```
+
+:::
+:::
+:::
 
 :::{.notes}
 Le catalogue est une liste de tous les datasets qui sont matérialisés — c'est à dire pas seulement en mémoire. Ils se présentent
@@ -220,9 +307,6 @@ catalogue de fichiers CSV locaux et tester mon pipeline avec ces nouvelles sourc
 
 Notez que tous ces datasets existent déjà, c'est une librairie appelée kedro-datasets qui est maintenue par les équipes de quantum black et la
 communauté.
-:::
-
-:::
 :::
 
 ## structure du projet
@@ -259,17 +343,49 @@ précédent, j'aurais créé le dossier test-local
 Les pipelines sont dans le dossier pipelines et sont répertoriés dans le fichier registry.
 :::
 
-# kedro: du développement à la production
+# Kedro: du développement à la production
 
-## Dumas du tuyau : trois écrivains et un lecteur
+## Dumas du tuyau : trois écrivains et un lecteur{.center}
 
-## à un YAML de la production...
+```{mermaid}
+flowchart TD
+
+	subgraph measures[stations]
+	  getstatistics[statistiques]
+	end
+
+	subgraph meteoblue
+	  getforecasts[prévisions]
+	  gethistory[historique]
+	end
+
+	forecasts[(prévisions)]
+	history[(historique)]
+	statistics[(statistiques)]
+
+	getstatistics --> statistics
+	getforecasts --> forecasts
+	gethistory --> history
+	
+	combine[combinaison] --> timeseries[(série finale)]
+	statistics --> combine
+	forecasts --> combine
+	history --> combine
+
+style measures color:#000
+style meteoblue color:#000
+
+```
+
+## Kafka sur le rivage
+
+- kafka n'est pas le sujet mais c'est notre dataset de production !
 
 :::{.columns}
 
 :::{.column}
 
-```{.yaml filename="/conf/test-measures/catalog.yml"}
+```{.yaml filename="/conf/test-measures/catalog.yml" code-line-numbers="1,3,5,6"}
 locations:
   type: pandas.JSONDataset
   filepath: data/01_raw/test_measures/locations.json
@@ -277,15 +393,12 @@ locations:
 formatted_measures_on_grids:
   type: pandas.CSVDataset
   filepath: data/03_primary/test_measures/measures_on_grids.csv
-  load_args:
-    parse_dates:
-      - timestamp
 ```
 
 :::
 :::{.column}
 
-```{.yaml filename="/conf/production/catalog.yml"}
+```{.yaml filename="/conf/production/catalog.yml" code-line-numbers="1,3,5,6"}
 locations:
   type: pandas.JSONDataset
   filepath: s3://virtual-stations/virtual-stations.json
@@ -294,31 +407,15 @@ formatted_measures_on_grids:
   type: datasets.ConfluentKafkaAvroDataset
   save_args:
     topic: h3_cells_time_series
-    cluster:
-      bootstrap_servers: ...
-    schema_registry:
-      url: ...
-    schema:
-      name: h3_cells_time_series
-      type: record
-      fields:
-        - name: h3_cell_id
-          type: string
-        - name: h3_cell_resolution
-          type: int
-        ...
+    ...
 ```
 
 :::
 :::
 
-## ...enfin presque
+# Vers des pipelines tout-terrain ?
 
-![](./images/virtual-stations.png){fig-align="center"}
-
-# vers des pipelines tout-terrain ?
-
-## la perspective du manager et de l'ingénieur
+## La perspective du manager et de l'ingénieur
 
 :::{.fragment}
 
@@ -337,3 +434,7 @@ formatted_measures_on_grids:
   - code des `node` dépend encore des libraries : `pandas`/`polars`/`spark`
   - nouvelles librairies pour palier cette dépendance : [`ibis`](https://ibis-project.org/), [`narwhal`](https://github.com/narwhals-dev/narwhals)
 :::
+
+## L'ensemble du tuyau
+
+![](./images/virtual-stations.png){fig-align="center"}
