@@ -343,39 +343,37 @@ précédent, j'aurais créé le dossier test-local
 Les pipelines sont dans le dossier pipelines et sont répertoriés dans le fichier registry.
 :::
 
-# Kedro: du développement à la production
+# Production, un YAML modifié, sérénité
 
-## Dumas du tuyau : trois écrivains et un lecteur{.center}
+## Dumas du tuyau : trois écrivains et un lecteur
 
+:::{.r-stretch }
 ```{mermaid}
-flowchart TD
+%%| fig-align: center
+flowchart LR
 
-	subgraph measures[stations]
-	  getstatistics[statistiques]
-	end
+	measures[(<br>mesures<br>des stations)]
+	getstatistics[<br>calculs<br>des statistiques]
 
-	subgraph meteoblue
-	  getforecasts[prévisions]
-	  gethistory[historique]
-	end
+	meteoblue[(<br>meteoblue<br>API)]
+  getforecasts[<br>récupération<br>des prévisions]
+  gethistory[<br>récupération<br>de l'historique]
 
-	forecasts[(prévisions)]
-	history[(historique)]
-	statistics[(statistiques)]
+	forecasts[(<br>prévisions)]
+	history[(<br>historique)]
+	statistics[(<br>statistiques)]
 
-	getstatistics --> statistics
-	getforecasts --> forecasts
-	gethistory --> history
+	measures --> getstatistics --> statistics
+	meteoblue --> getforecasts --> forecasts
+	meteoblue --> gethistory --> history
 	
-	combine[combinaison] --> timeseries[(série finale)]
-	statistics --> combine
+	combine[<br>combinaison<br>des sources] --> timeseries[(<br>série temporelle<br>finale)]
+  statistics --> combine
 	forecasts --> combine
 	history --> combine
-
-style measures color:#000
-style meteoblue color:#000
-
 ```
+
+:::
 
 ## Kafka sur le rivage
 
@@ -433,6 +431,14 @@ formatted_measures_on_grids:
 - vers un pipeline agnostique
   - code des `node` dépend encore des libraries : `pandas`/`polars`/`spark`
   - nouvelles librairies pour palier cette dépendance : [`ibis`](https://ibis-project.org/), [`narwhal`](https://github.com/narwhals-dev/narwhals)
+:::
+
+# {background-opacity=0.25 background-image="./images/raincrop.jpg"}
+
+:::{.r-fit-text}
+
+Merci de votre attention !
+
 :::
 
 ## L'ensemble du tuyau
