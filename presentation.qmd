@@ -391,6 +391,14 @@ locations:
 formatted_measures_on_grids:
   type: pandas.CSVDataset
   filepath: data/03_primary/test_measures/measures_on_grids.csv
+
+  
+```
+
+<br>
+
+```sh
+kedro run --pipeline fetch_measures_on_grids --env test-measures
 ```
 
 :::
@@ -406,6 +414,12 @@ formatted_measures_on_grids:
   save_args:
     topic: h3_cells_time_series
     ...
+```
+
+<br>
+
+```sh
+kedro run --pipeline fetch_measures_on_grids --env production
 ```
 
 :::
