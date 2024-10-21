@@ -55,6 +55,12 @@ format:
 :::
 :::
 
+:::{.notes}
+Sencrop est une startup de l'agtech fondée en 2016 dans le nord de la France, à Lille très exactement. Avec plus de 80 collaborateurs, 
+Sencrop est le leader européen des stations météos connectées en couvrant l'Europe de l'ouest de plus de 35 000 capteurs. 
+Avec différents types de mesures et une application ergonomique, Sencrop est capable de répondre au problématique des agriculteurs actuels: optimisation de l'irrigation, de la pulvérisation de produit phytosanitaire, prévention des risques maladie ou du gel.
+:::
+
 ## Spatialisation 
 
 - Est-ce que l'on peut fournir de la donnée météorologique de qualité sur n'importe quelle localisation sur le territoire ?
@@ -75,6 +81,16 @@ format:
 :::
 :::
 :::
+
+:::{.notes}
+Aujourd'hui Sencrop est présente dans plus de 10 pays à travers l'Europe, principale autour de la France. 
+Il est impressionnant de se voir représenter la couverture totale de l'ensemble des stations Sencrop, cependant il reste des zones ou nous ne sommes pas implenté.
+Pour également répondre aux problématiques de nos clients, il nous a été demandé de créer une solution permettant de générer des indicateurs (température, pluie et hygrométrie) avec une grande fiabilité.
+Après différentes concertation au sain de l'équipe, nous avons fait le choix de choisir un index hiérarchique de spatialisation. Il en existe plusieurs comme geohash, TODO, mais nous avons choisi H3 de Uber.
+
+Cette technologie comme vous pouvez le voir nous permet de facilement exploré l'espace grace à des cellules en hexagone. Chaque cellule peut être découpée en plusieurs petites cellules (etc). 
+:::
+
 
 # Un, deux, trois... <span style="color:yellow">◆</span> kedro!
 
@@ -375,6 +391,12 @@ flowchart LR
 
 :::
 
+:::{.notes}
+Pour aller un peu plus loin en détails, je vais maintenant vous présenter le découpage que nous avons effectuer pour implémenter notre solution dans le framework Kedro.
+1) Voici les différentes source (les mesures ...., et Meteoblue)
+2) Une fois ces sources recupérées, nous pouvons les joindre et ainsi obtenir une timeserie compléte sur l'interval de temps qui nous intéresse
+:::
+
 ## Kafka sur le rivage
 
 - kafka n'est pas le sujet mais c'est notre dataset de production !
@@ -423,6 +445,15 @@ kedro run --pipeline fetch_measures_on_grids --env production
 ```
 
 :::
+:::
+
+:::{.notes}
+Enfin, voici l'étape "finale" nécessaire pour la mise en production. 
+Comme vous l'a montré Flavien précedement, il suffit "simplement" de changer d'environment et d'utiliser un catalogue différent avec des dataset différents. 
+Vous l'aurez remarqué, lorsque que nous travaillons en local, il est possible d'utiliser des datasets dit "simples" comme des csv, mais une fois en production il est courant d'utiliser une technologie plus résiliente et scalable. 
+C'est pourquoi nous avons décider d'utiliser Kafka. 
+Pour ceux qui connaissent un peu le framework Kedro, il est fortement probable que vous ne connaissiez pas le type ConfluentKafkaAvroDataset.
+C'est normal puisque c'est un dataset custom développé spécifiquement pour notre usage chez Sencrop.
 :::
 
 # Vers des pipelines tout-terrain ?
