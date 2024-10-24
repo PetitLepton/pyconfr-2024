@@ -65,8 +65,9 @@ Sencrop c'est une startup de l'agtech fondée en 2016 dans le nord de la France,
 Sencrop est le leader européen des stations météos connectées en couvrant l'Europe de l'ouest de plus de 35 000 capteurs. 
 
 Le principe est simple, nos utilisateurs (qui sont agriculteurs la plupart du temps) peuvent installer une station dans leur champ. 
-Ses stations possèdent plusieurs capteurs comme vous pouvez le voir sur l'écran juste ici. Les mesures apparaissent ensuite sur une applciation sur téléphone ou ordinateur.
-Cela permet à nos utilisateurs de prendre des décisions sur leur opération quotidienne. 
+Ces stations possèdent plusieurs capteurs comme vous pouvez le voir sur l'écran juste ici. 
+Les mesures apparaissent ensuite sur une application sur téléphone ou ordinateur.
+Ces données météorologiques permettent à nos utilisateurs de prendre des décisions sur leur opération quotidienne. 
 Ainsi, nos agriculteurs réussissent à optimiser leur l'irrigation afin de gagner certains volumes d'eau, 
 mais également optimiser leur pulvérisation de produit phytosanitaire (qui coute très cher). 
 Du côté agronomique, nous arrivons aussi à fournir de précieux conseils sur les périodes de risques maladies (pour protéger au mieux du mildiou par exemple) ou les périodes de gel (qui touchent régulierement nos vignerons).
@@ -95,7 +96,8 @@ Du côté agronomique, nous arrivons aussi à fournir de précieux conseils sur 
 
 :::{.notes}
 Aujourd'hui Sencrop est présente dans plus de 10 pays à travers l'Europe, principale autour de la France. 
-Malgré notre large réseau de stations, nous faisons face à un défi majeur : la couverture géographique n'est pas uniforme. Certaines régions françaises, par exemple, sont moins densément équipées que d'autres. 
+Malgré notre large réseau de stations, nous faisons face à un défi majeur : la couverture géographique n'est pas uniforme. 
+Certaines régions françaises, par exemple, sont moins densément équipées que d'autres. 
 Cette situation pose un problème crucial : comment fournir des données météorologiques précises pour n'importe quel point GPS, même en l'absence de station à proximité immédiate ?
 C'est là qu'intervient notre solution de génération de séries temporelles. 
 L'objectif est ambitieux : créer un système capable de produire des données météorologiques fiables pour n'importe quelle coordonnée géographique en Europe de l'Ouest.
