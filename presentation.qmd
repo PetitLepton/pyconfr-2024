@@ -25,6 +25,11 @@ format:
 
 # L'agtech au pays de la patate
 
+:::{.notes}
+Pour commencer cette présentation j'aimerais vous parler un peu de Sencrop pour introduire les différentes problématiques auxquelles nous sommes confrontées aujourd'hui.
+:::
+
+
 ## Sencrop {background-opacity=0.25 background-image="./images/raincrop.jpg"}
 
 - 35000 stations météorologiques réparties sur toute l'Europe
@@ -55,6 +60,19 @@ format:
 :::
 :::
 
+:::{.notes}
+Sencrop c'est une startup de l'agtech fondée en 2016 dans le nord de la France, à Lille très exactement. Avec plus de 80 collaborateurs, 
+Sencrop est le leader européen des stations météos connectées en couvrant l'Europe de l'ouest de plus de 35 000 capteurs. 
+
+Le principe est simple, nos utilisateurs (qui sont agriculteurs la plupart du temps) peuvent installer une station dans leur champ. 
+Ces stations possèdent plusieurs capteurs comme vous pouvez le voir sur l'écran juste ici. 
+Les mesures apparaissent ensuite sur une application sur téléphone ou ordinateur.
+Ces données météorologiques permettent à nos utilisateurs de prendre des décisions sur leur opération quotidienne. 
+Ainsi, nos agriculteurs réussissent à optimiser leur l'irrigation afin de gagner certains volumes d'eau, 
+mais également optimiser leur pulvérisation de produit phytosanitaire (qui coute très cher). 
+Du côté agronomique, nous arrivons aussi à fournir de précieux conseils sur les périodes de risques maladies (pour protéger au mieux du mildiou par exemple) ou les périodes de gel (qui touchent régulierement nos vignerons).
+:::
+
 ## Spatialisation 
 
 - Est-ce que l'on peut fournir de la donnée météorologique de qualité sur n'importe quelle localisation sur le territoire ?
@@ -75,6 +93,32 @@ format:
 :::
 :::
 :::
+
+:::{.notes}
+Aujourd'hui Sencrop est présente dans plus de 10 pays à travers l'Europe, principale autour de la France. 
+Malgré notre large réseau de stations, nous faisons face à un défi majeur : la couverture géographique n'est pas uniforme. 
+Certaines régions françaises, par exemple, sont moins densément équipées que d'autres. 
+Cette situation pose un problème crucial : comment fournir des données météorologiques précises pour n'importe quel point GPS, même en l'absence de station à proximité immédiate ?
+C'est là qu'intervient notre solution de génération de séries temporelles. 
+L'objectif est ambitieux : créer un système capable de produire des données météorologiques fiables pour n'importe quelle coordonnée géographique en Europe de l'Ouest.
+
+Pour relever ce défi de spatialisation des données, nous nous appuyons sur H3, le système de géo-indexation hiérarchique développé par Uber. Ce choix n'est pas anodin.
+H3 divise la surface terrestre en hexagones de taille uniforme. Ce qui rend H3 particulièrement pertinent pour notre usage, c'est que :
+
+- Les hexagones minimisent la distorsion des distances entre le centre et les bords, contrairement aux carrés
+- Le système est hiérarchique avec 16 résolutions, allant d'hexagones de 1000km à moins d'un mètre de diamètre
+- Chaque hexagone a un identifiant unique, ce qui facilite l'indexation et la recherche
+- Les cellules voisines sont facilement identifiables grâce à l'algorithme de H3
+
+Dans notre cas, nous utilisons principalement la résolution 7, qui correspond à des hexagones d'environ 5km de diamètre. Cette échelle nous permet de :
+
+- Agréger efficacement les données de nos stations au sein d'une même cellule
+- Créer une grille régulière pour l'interpolation des données
+- Optimiser les performances de calcul tout en maintenant une précision pertinente pour l'agriculture
+
+L'utilisation de H3 nous permet ainsi de structurer spatialement nos données météorologiques de manière efficace et d'appliquer nos algorithmes d'interpolation avec une plus grande confiance dans les résultats.
+:::
+
 
 # Un, deux, trois... <span style="color:yellow">◆</span> kedro!
 
@@ -375,6 +419,58 @@ flowchart LR
 
 :::
 
+:::{.notes}
+Pour générer des séries temporelles précises pour n'importe quel point GPS, nous avons mis en place une architecture qui combine plusieurs sources de données. 
+Laissez-moi vous expliquer notre pipeline de données.
+Tout d'abord, nous exploitons deux sources principales :
+
+Nos stations Sencrop :
+
+Nous collectons en temps réel les mesures de nos stations déployées sur le terrain
+Ces données brutes sont traitées pour calculer des statistiques pertinentes (principalement des médianes)
+
+
+L'API Meteoblue :
+Cette source externe nous fournit deux types de données :
+
+Des prévisions météorologiques pour compléter nos données en temps réel
+Un historique météorologique pour le passé
+
+L'étape cruciale de notre système est la combinaison de ces sources. Notre algorithme fusionne intelligemment :
+
+Les statistiques issues de nos stations
+Les prévisions Meteoblue
+L'historique Meteoblue
+
+Cette approche multi-sources nous permet de générer une série temporelle finale qui bénéficie :
+
+De la précision de nos mesures terrain là où nous avons des stations
+De la couverture géographique complète offerte par Meteoblue
+D'une continuité temporelle entre passé, présent et futur
+
+Le résultat est une série temporelle cohérente et fiable, disponible pour n'importe quel point géographique de notre zone de couverture.
+:::
+
+:::{.notes}
+Passage sur Kedro-viz
+Laissez-moi maintenant vous présenter l'architecture de notre pipeline de données, visualisée ici grâce à Kedro-viz. 
+Pour ceux qui ne connaissent pas, Kedro-viz est un outil fantastique qui nous permet de visualiser nos pipelines de données de manière claire et interactive, 
+ce qui rend la compréhension de systèmes complexes beaucoup plus accessible.
+
+Dans notre pipeline, tout commence avec les 'Locations' - ce sont les points GPS pour lesquels nous voulons générer des séries temporelles. 
+Ces coordonnées constituent l'entrée principale de notre système.
+Ces points GPS sont ensuite convertis en 'Grids' - il s'agit des fameuses cellules hexagonales H3 dont nous parlions précédemment. 
+Cette étape de conversion est cruciale car elle nous permet de passer d'une logique de points GPS arbitraires à une structure spatiale régulière et optimisée.
+Le pipeline se complexifie ensuite avec plusieurs étapes de traitement :
+
+La récupération des séries temporelles sur les cellules H3 pour les différentes sources.
+
+Ces traitements convergent vers la production de séries temporelles ordonnées ('Ordered Time Series On Grids'), qui sont ensuite affinées pour produire les séries temporelles finales.
+Le point d'orgue de ce pipeline est la dernière étape : 'Time Series On Locations'. 
+C'est ici que nous revenons à notre objectif initial - fournir des données météorologiques précises pour chaque point GPS demandé. 
+Pour chaque localisation, nous stockons une série temporelle complète, combinant ainsi la puissance de notre infrastructure de données avec la précision géographique dont nos utilisateurs ont besoin.
+:::
+
 ## Kafka sur le rivage
 
 - kafka n'est pas le sujet mais c'est notre dataset de production !
@@ -423,6 +519,23 @@ kedro run --pipeline fetch_measures_on_grids --env production
 ```
 
 :::
+:::
+
+:::{.notes}
+Parlons maintenant du déploiement en production, et vous allez voir que c'est là que la puissance du framework Kedro prend tout son sens.
+Comme vous pouvez le voir à l'écran, le passage de l'environnement de test à la production se fait de manière élégante et simple grâce à une simple modification des fichiers de configuration. 
+Concrètement :
+
+En environnement de test, nous lisons et écrivons nos données dans des fichiers locaux simples (JSON, CSV)
+En production, nous conservons exactement la même logique de pipeline, mais nous connectons nos données à Kafka via ConfluentKafkaAvroDataset, 
+qui est une implémentation personnalisée de Dataset, qui nous permet d'écrire dans Kafka tout en garantissant la cohérence des données via Schema Registry.
+
+Cette approche présente plusieurs avantages :
+
+Le code reste strictement identique entre les environnements
+Seule la configuration change, ce qui réduit les risques d'erreur
+Les tests peuvent être effectués en local avec des fichiers plats
+
 :::
 
 # Vers des pipelines tout-terrain ?
