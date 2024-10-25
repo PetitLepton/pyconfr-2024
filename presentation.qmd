@@ -143,15 +143,17 @@ flowchart LR
 	input2[(dataset)]
 	output[(dataset)]
 	
+	input1 --> node2
+	input2 --> node2
+
   subgraph pipeline[pipeline]
     direction LR
   	node2 --> node7
   	%% node3 --> node5 --> node7
-  	input1 --> node2
-  	input2 --> node2
   	%% input3 --> node5
-  	node7 --> output
   end
+
+  node7 --> output
 
   style pipeline color:#000
 ```
@@ -176,8 +178,12 @@ kedro est une librairie open-source qui a été initialement développée par Qu
 financé par le contribuable français) qui a été depuis transmise à la Linux Foundation. Je devais être destiné à utiliser kedro parce
 que, comme les trous noirs quantiques, je n'ai pas de cheveux.
 
-kedro permet de construire efficacement des pipelines de transformations de données et se base sur trois concepts qui vous sont
-peut-être familiers : des nœuds, des pipelines et un catalogue dont nous allons expliquer la signification dans quelques instants.
+kedro permet de construire efficacement des pipelines de transformations de données. Pour celleeux qui ne seraient pas familières avec
+la notion de pipeline, le schéma de gauche en présente un simplifié. Le pipeline est ici très simple, il contient deux noeuds séquentiels
+qui sont alimentés en amont par deux jeux de données et qui résultent la création d'un troisième.
+
+kedro reprend, mot pour mot, ces trois concepts: des nœuds, des pipelines et un catalogue dont nous allons expliquer la signification
+dans quelques instants.
 :::
 
 ## pipelines & nodes
@@ -273,11 +279,14 @@ def extract_unique_grid_ids(grids: pandas.DataFrame) -> pandas.DataFrame:
 :::
 
 :::{.notes}
-Un nœud au sens de kedro est juste une fonction python qui peut avoir des entrées et des sorties. Elle est totalement
-indépendante du reste et peut/doit donc être testée de manière unitaire.
 
-Un pipeline est constitué de séquences de nœuds. La structure du DAG, ce qui en fait un pipeline, ce sont les entrées/sorties.
-Si la sortie d'un nœud fait partie des entrées d'un autre alors ces deux nœuds seront exécutés séquentiellement.
+Un pipeline est une class Python constituée de séquences de node. La structure du DAG, ce qui en fait un pipeline, ce sont les entrées/sorties.
+Si la sortie d'un nœud fait partie des entrées d'un autre alors ces deux nœuds seront exécutés séquentiellement. Dans l'exemple
+à gauche, le nœud map_locations_to_grids intervient avant extract_unique_grid_ids parce que sa sortie grids est le jeud de donnée
+d'entrée d'extract_unique_grid_ids.
+
+Un nœud au sens de kedro juste une fonction python qui peut avoir des entrées et des sorties. Elle est totalement
+indépendante du reste et peut/doit donc être testée de manière unitaire.
 
 Vous remarquerez que les entrées/sorties sont définies par des chaînes de caractères, des noms de datasets. Que représentent-ils
 et comment passe-t-on d'une chaîne de caractère à un DataFrame pandas comme dans l'exemple. Et bien, c'est le catalogue !
@@ -334,20 +343,20 @@ kedro run --pipeline map_locations_to_grids --env production
 :::
 
 :::{.notes}
-Le catalogue est une liste de tous les datasets qui sont matérialisés — c'est à dire pas seulement en mémoire. Ils se présentent
+Le catalogue est une liste de tous les datasets qui sont matérialisés — c'est à dire pas seulement en mémoire. Il se présente
 sous la forme d'un fichier yaml dont chaque clef principale correspond aux noms que vous trouvez dans les pipelines. L'élément le
 plus important est le type, c'est lui va déterminer comment on passe d'un nom à une structure python. Un type de dataset est en fait
-une classe Python qui implémente un certain nombre de méthode particulièrement, load et save. Lorsqu'un pipeline est exécuté,
+une classe Python qui implémente un certain nombre de méthodes, notamment load et save. Lorsqu'un pipeline est exécuté,
 avant l'exécution d'un nœud, kedro va utiliser la méthode load pour charger les données du dataset en mémoire et appliquer la
 transformation définie dans le nœud. Le résultat est ensuite matérialisé si besoin par l'intermédiaire de la méthode save du dataset
 de sortie.
 
-Dans notre exemple, la dataset est un pandas.CSVDataset. C'est une classe qui utilise pandas pour lire un fichier CSV, qui ici, se trouve
-dans un bucket s3. Vous remarquerez que le catalogue es défini dans un dossier conf/base. Pour exécuter le pipeline, vous utilisez la CLI
-de kedro en précisant l'environnement, ici base. Et c'est ici que réside l'un des forces les plus tangibles de kedro. Vous avez parfaitement
-remarqué que le pipeline est indépendant des sources de données, la seule chose importante est que le dataset renvoie dans notre cas un dataframe.
-Je peux donc définir un autre catalogue avec un autre type de dataset qui va lui aussi me fournir une dataframe. Par exemple, je peux créer un
-catalogue de fichiers CSV locaux et tester mon pipeline avec ces nouvelles sources !
+Dans notre exemple, la dataset est un pandas.JSONDataset. C'est une classe qui utilise pandas pour lire un fichier JSON, qui ici, se trouve localement
+dans un dossier. Vous remarquerez que le catalogue es défini dans un dossier conf/test-local. Pour exécuter le pipeline, vous utilisez la CLI
+de kedro en précisant l'environnement, c'est-à-dire le nom du sous-dossier, ici test-local. Et c'est ici que réside l'un des forces les plus tangibles 
+de kedro. Vous avez remarqué que le pipeline précédent est indépendant des sources de données, la seule chose importante est que le dataset renvoie dans 
+notre cas un dataframe. Je peux donc définir un autre catalogue avec un autre type de dataset qui va lui aussi me fournir une dataframe. Par exemple, je peux créer un
+catalogue avec un fichier JSON dans un bucket s3 et jouer mon pipeline avec ce nouvel environnement !
 
 Notez que tous ces datasets existent déjà, c'est une librairie appelée kedro-datasets qui est maintenue par les équipes de quantum black et la
 communauté.
@@ -385,6 +394,8 @@ Cela se retrouve dans la structure d'un projet. Tous les catalogues se trouvent 
 précédent, j'aurais créé le dossier test-local
 
 Les pipelines sont dans le dossier pipelines et sont répertoriés dans le fichier registry.
+
+L'avantage de cette structure fixe est qu'elle permet à une personne qui connaît un peu kedro de voyager dans le projet facilement.
 :::
 
 # Production, un YAML modifié, sérénité
