@@ -42,10 +42,10 @@ Pour commencer cette présentation j'aimerais vous parler un peu de Sencrop pour
   <img src="./images/grey-temp-hum-o.png" width="70em"/>
   <p>température de l'air & hygrométrie</p>
   <img src="./images/grey-wind.png" width="70em"/>
-  <p>direction et vitesse du vent</p>
-  <img src="./images/grey-rain-o.png" width="70em"/>
   <p>pluviométrie</p>
   <img src="./images/grey-dew-point.png" width="70em"/>
+  <p>direction et vitesse du vent</p>
+  <img src="./images/grey-rain-o.png" width="70em"/>
   <p>point de rosée</p>
 </div>
 ```
@@ -61,16 +61,24 @@ Pour commencer cette présentation j'aimerais vous parler un peu de Sencrop pour
 :::
 
 :::{.notes}
-Sencrop c'est une startup de l'agtech fondée en 2016 dans le nord de la France, à Lille très exactement. Avec plus de 80 collaborateurs, 
-Sencrop est le leader européen des stations météos connectées en couvrant l'Europe de l'ouest de plus de 35 000 capteurs. 
+Sencrop c'est une startup de l'agtech fondée en 2016 dans le nord de la France, à Lille très exactement.  
 
 Le principe est simple, nos utilisateurs (qui sont agriculteurs la plupart du temps) peuvent installer une station dans leur champ. 
+
 Ces stations possèdent plusieurs capteurs comme vous pouvez le voir sur l'écran juste ici. 
-Les mesures apparaissent ensuite sur une application sur téléphone ou ordinateur.
-Ces données météorologiques permettent à nos utilisateurs de prendre des décisions sur leur opération quotidienne. 
-Ainsi, nos agriculteurs réussissent à optimiser leur l'irrigation afin de gagner certains volumes d'eau, 
-mais également optimiser leur pulvérisation de produit phytosanitaire (qui coute très cher). 
+
+Les mesures apparaissent ensuite sur une application sur téléphone ou ordinateur et permettent à nos utilisateurs de prendre des décisions sur leur opération quotidienne. 
+
+Ainsi, nos agriculteurs réussissent à optimiser leur l'irrigation afin de réduire leur consommation d'eau, 
+mais également optimiser leur pulvérisation de produit phytosanitaire pour réduire les couts associés. 
+
 Du côté agronomique, nous arrivons aussi à fournir de précieux conseils sur les périodes de risques maladies (pour protéger au mieux du mildiou par exemple) ou les périodes de gel (qui touchent régulierement nos vignerons).
+
+Aujourd'hui Sencrop est devenu le leader européen des stations météos connectées pour l'agriculture en couvrant l'Europe de l'ouest.
+
+Sencrop est présente dans plus de 10 pays à travers l'Europe, principale autour de la France avec de plus de 35 000 stations installées.
+
+Comme vous pouvez le constater, le réseau Sencrop est très densément peuplé dans certaine zones (le nord de la France pour la patate, la champagne, Bordeaux) et l'est beaucoup moins dans d'autres. 
 :::
 
 ## Spatialisation 
@@ -95,26 +103,35 @@ Du côté agronomique, nous arrivons aussi à fournir de précieux conseils sur 
 :::
 
 :::{.notes}
-Aujourd'hui Sencrop est présente dans plus de 10 pays à travers l'Europe, principale autour de la France. 
-Malgré notre large réseau de stations, nous faisons face à un défi majeur : la couverture géographique n'est pas uniforme. 
-Certaines régions françaises, par exemple, sont moins densément équipées que d'autres. 
+Aujourd'hui notre problématique est la suivante: la couverture géographique n'est pas uniforme malgré notre large réseau de stations.
+
 Cette situation pose un problème crucial : comment fournir des données météorologiques précises pour n'importe quel point GPS, même en l'absence de station à proximité immédiate ?
+
 C'est là qu'intervient notre solution de génération de séries temporelles. 
+
 L'objectif est ambitieux : créer un système capable de produire des données météorologiques fiables pour n'importe quelle coordonnée géographique en Europe de l'Ouest.
 
-Pour relever ce défi de spatialisation des données, nous nous appuyons sur H3, le système de géo-indexation hiérarchique développé par Uber. Ce choix n'est pas anodin.
+Pour relever ce défi de spatialisation des données, nous nous appuyons sur H3, le système de géo-indexation hiérarchique développé par Uber. 
+
+Ce choix n'est pas anodin.
+
 H3 divise la surface terrestre en hexagones de taille uniforme. Ce qui rend H3 particulièrement pertinent pour notre usage, c'est que :
 
-- Les hexagones minimisent la distorsion des distances entre le centre et les bords, contrairement aux carrés
-- Le système est hiérarchique avec 16 résolutions, allant d'hexagones de 1000km à moins d'un mètre de diamètre
-- Chaque hexagone a un identifiant unique, ce qui facilite l'indexation et la recherche
-- Les cellules voisines sont facilement identifiables grâce à l'algorithme de H3
+- Le système est hiérarchique avec 16 résolutions, allant d'hexagones de plusieurs millions de km2 à des hexagones de moins d'un metre carré. 
+Comme vous pouvez le remarquer sur ce schéma on peut aisément naviguer entre les différentes échelles (d'une grande à 7 petites)
 
-Dans notre cas, nous utilisons principalement la résolution 7, qui correspond à des hexagones d'environ 5km de diamètre. Cette échelle nous permet de :
+- Chaque hexagone a un identifiant unique, ce qui facilite l'indexation et la recherche
+
+- Les cellules voisines sont facilement identifiables grâce à l'algorithme de H3
+H3 nous met à disposition des méthodes pour passer d'une cellule à ses n plus proches voisins.
+
+Dans notre cas, nous utilisons principalement la résolution 7, qui correspond à des hexagones de quelques km2. 
+
+Cette présicion nous permet plusieurs choses:
 
 - Agréger efficacement les données de nos stations au sein d'une même cellule
 - Créer une grille régulière pour l'interpolation des données
-- Optimiser les performances de calcul tout en maintenant une précision pertinente pour l'agriculture
+- Optimiser les performances et les coûts de calcul tout en maintenant une précision pertinente pour l'agriculture
 
 L'utilisation de H3 nous permet ainsi de structurer spatialement nos données météorologiques de manière efficace et d'appliquer nos algorithmes d'interpolation avec une plus grande confiance dans les résultats.
 :::
@@ -432,14 +449,13 @@ flowchart LR
 
 :::{.notes}
 Pour générer des séries temporelles précises pour n'importe quel point GPS, nous avons mis en place une architecture qui combine plusieurs sources de données. 
-Laissez-moi vous expliquer notre pipeline de données.
+Laissez-moi vous expliquer notre pipeline de données avec ce premier schéma statique.
 Tout d'abord, nous exploitons deux sources principales :
 
 Nos stations Sencrop :
 
 Nous collectons en temps réel les mesures de nos stations déployées sur le terrain
 Ces données brutes sont traitées pour calculer des statistiques pertinentes (principalement des médianes)
-
 
 L'API Meteoblue :
 Cette source externe nous fournit deux types de données :
@@ -460,9 +476,7 @@ De la couverture géographique complète offerte par Meteoblue
 D'une continuité temporelle entre passé, présent et futur
 
 Le résultat est une série temporelle cohérente et fiable, disponible pour n'importe quel point géographique de notre zone de couverture.
-:::
 
-:::{.notes}
 Passage sur Kedro-viz
 Laissez-moi maintenant vous présenter l'architecture de notre pipeline de données, visualisée ici grâce à Kedro-viz. 
 Pour ceux qui ne connaissent pas, Kedro-viz est un outil fantastique qui nous permet de visualiser nos pipelines de données de manière claire et interactive, 
@@ -480,6 +494,8 @@ Ces traitements convergent vers la production de séries temporelles ordonnées 
 Le point d'orgue de ce pipeline est la dernière étape : 'Time Series On Locations'. 
 C'est ici que nous revenons à notre objectif initial - fournir des données météorologiques précises pour chaque point GPS demandé. 
 Pour chaque localisation, nous stockons une série temporelle complète, combinant ainsi la puissance de notre infrastructure de données avec la précision géographique dont nos utilisateurs ont besoin.
+
+Maintenant que nous avons exploré Kedro-viz et sa capacité à visualiser clairement l'architecture de nos pipelines de données, passons à l'aspect pratique de leur déploiement. 
 :::
 
 ## Kafka sur le rivage
@@ -533,7 +549,7 @@ kedro run --pipeline fetch_measures_on_grids --env production
 :::
 
 :::{.notes}
-Parlons maintenant du déploiement en production, et vous allez voir que c'est là que la puissance du framework Kedro prend tout son sens.
+Vous allez voir que c'est là que la puissance du framework Kedro prend tout son sens.
 Comme vous pouvez le voir à l'écran, le passage de l'environnement de test à la production se fait de manière élégante et simple grâce à une simple modification des fichiers de configuration. 
 Concrètement :
 
